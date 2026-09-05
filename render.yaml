@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: aslih-backend
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 30d
+      - key: CORS_ORIGINS
+        sync: false
+      - key: ARRIVAL_RADIUS_METERS
+        value: 50
+      - key: STORAGE_DRIVER
+        value: local
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: PUBLIC_BASE_URL
+        sync: false
