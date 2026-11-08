@@ -58,7 +58,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   // No tokens are issued: the account can't sign in until it is activated.
   res.status(201).json({
     pending: true,
-    message: "Account created. An administrator must activate it before you can sign in.",
+    message: "Your account has been created. Please wait for an administrator to activate your account.",
     user: serialize({
       _id: user._id,
       fullName: user.fullName,
@@ -72,13 +72,23 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select("+passwordHash");
-  if (!user || !user.isActive) {
+  if (!user) {
     throw ApiError.unauthenticated("Invalid email or password.");
   }
 
   const valid = await verifyPassword(user.passwordHash, password);
   if (!valid) {
     throw ApiError.unauthenticated("Invalid email or password.");
+  }
+
+  // Correct credentials but the account hasn't been activated yet.
+  // Checked AFTER the password so account status isn't leaked to strangers.
+  if (!user.isActive) {
+    throw new ApiError(
+      403,
+      "ACCOUNT_PENDING",
+      "Your account is waiting for an administrator to activate it. Please try again later."
+    );
   }
 
   const { accessToken, refreshToken } = await issueTokenPair(user._id.toString());
