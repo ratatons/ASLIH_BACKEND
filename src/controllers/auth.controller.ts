@@ -43,11 +43,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     email,
     phone,
     passwordHash,
-    isActive: true,
+    isActive: false, // pending: an admin must activate before the user can sign in
     roles: defaultRole ? [defaultRole._id] : [],
   });
-
-  const { accessToken, refreshToken } = await issueTokenPair(user._id.toString());
 
   await writeAuditLog({
     actorUserId: user._id.toString(),
@@ -57,9 +55,10 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     metadata: { email: user.email },
   });
 
+  // No tokens are issued: the account can't sign in until it is activated.
   res.status(201).json({
-    token: accessToken,
-    refreshToken,
+    pending: true,
+    message: "Account created. An administrator must activate it before you can sign in.",
     user: serialize({
       _id: user._id,
       fullName: user.fullName,

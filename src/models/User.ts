@@ -18,7 +18,8 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     phone: { type: String, required: true, trim: true },
     passwordHash: { type: String, required: true, select: true },
-    isActive: { type: Boolean, default: true },
+    // New accounts start inactive (pending) until an admin activates them.
+    isActive: { type: Boolean, default: false },
     roles: [{ type: Schema.Types.ObjectId, ref: "Role", default: [] }],
   },
   { timestamps: true }

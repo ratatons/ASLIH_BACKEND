@@ -54,7 +54,9 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await User.create({ fullName, email, phone, passwordHash, roles, isActive: isActive ?? true });
+  // Defaults to inactive (pending). An admin can pass isActive: true to
+  // create an already-active account.
+  const user = await User.create({ fullName, email, phone, passwordHash, roles, isActive: isActive ?? false });
 
   await writeAuditLog({
     actorUserId: req.auth!.userId,

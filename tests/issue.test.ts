@@ -7,14 +7,21 @@ import { TicketType } from "../src/models/TicketType";
 
 const app = createApp();
 
+// New accounts are created inactive (pending), so the helper registers,
+// activates the account directly in the DB (standing in for an admin), and
+// then logs in to obtain a token.
 async function registerAndLogin(email: string, phone: string) {
-  const res = await request(app).post("/api/auth/register").send({
+  const reg = await request(app).post("/api/auth/register").send({
     fullName: "Test User",
     email,
     phone,
     password: "supersecurepw",
   });
-  return { token: res.body.token as string, userId: res.body.user.id as string };
+  const userId = reg.body.user.id as string;
+  await User.findByIdAndUpdate(userId, { isActive: true });
+
+  const login = await request(app).post("/api/auth/login").send({ email, password: "supersecurepw" });
+  return { token: login.body.token as string, userId };
 }
 
 async function promoteToSuperAdmin(userId: string) {
